@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" href="credigroww.png">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CrediGrowW — User Portal (Demo)</title>
+<style>
+  :root{
+    --bg:#f7fbff;         /* soft white-blue */
+    --card:#ffffff;
+    --nav:#062a52;        /* deep blue */
+    --accent:#0b8f6b;     /* green */
+    --muted:#556170;
+    --gold:#c79c2f;
+    --black:#071124;
+    --glass: rgba(8,29,50,0.06);
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;background:linear-gradient(180deg,#f7fbff 0%, #ffffff 100%);color:var(--black);-webkit-font-smoothing:antialiased}
+  .app{max-width:1100px;margin:18px auto;padding:18px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .topbar.hidden{display:none}
+  footer.hidden{display:none}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--nav),var(--accent));
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:18px;box-shadow:0 6px 18px rgba(11,38,64,0.12)
+  }
+  .brand h1{font-size:18px;margin:0;color:var(--nav);letter-spacing:0.2px}
+  .nav{display:flex;gap:8px;align-items:center}
+  .nav button{background:transparent;border:0;padding:8px 12px;border-radius:10px;color:var(--nav);font-weight:600;cursor:pointer}
+  .nav button.active{background:linear-gradient(90deg, rgba(11,143,107,0.12), rgba(8,42,82,0.06));border:1px solid rgba(8,42,82,0.06)}
+  .login-card{max-width:760px;margin:20px auto;background:var(--card);border-radius:var(--radius);box-shadow:0 8px 30px rgba(11,38,64,0.06);padding:20px}
+  .grid{display:grid;gap:12px}
+  .two-col{display:grid;grid-template-columns:1fr 320px;gap:12px}
+  label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type="text"], input[type="tel"], input[type="password"], button, select, textarea{
+    width:100%;padding:11px;border-radius:10px;border:1px solid #e6eef6;background: #fbfeff;font-size:15px;outline:none;
+  }
+  button.primary{background:linear-gradient(90deg,var(--nav),var(--accent));color:white;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+  .muted{color:var(--muted);font-size:13px}
+  .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(11,38,64,0.04)}
+  .profile-picture{width:120px;height:120px;border-radius:14px;background:linear-gradient(180deg,#eef7fb,#fff);display:flex;align-items:center;justify-content:center;border:1px solid var(--glass);overflow:hidden}
+  .profile-picture img{width:100%;height:100%;object-fit:cover}
+  .center{text-align:center}
+  .small{font-size:13px;color:var(--muted)}
+  .banks-list{display:flex;flex-direction:column;gap:10px}
+  .bank-item{display:flex;align-items:center;justify-content:space-between;padding:10px;border-radius:10px;border:1px solid #f0f4f8;background:linear-gradient(180deg,#fff,#fbfdff)}
+  .btn{padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:700}
+  .btn.ghost{background:transparent;border:1px solid #e6eef6}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700}
+  .verified{background:linear-gradient(90deg,#e6fff5,#dff7ee);color:var(--accent);border:1px solid rgba(11,143,107,0.12)}
+  .pending{background:#fff9e6;color:#b36a00;border:1px solid rgba(179,106,0,0.08)}
+  .score-box{display:flex;align-items:center;gap:18px}
+  .score-num{font-size:48px;font-weight:800;color:var(--nav)}
+  .expiry{color:var(--muted);font-size:13px}
+  .about-list{line-height:1.6}
+  footer{margin-top:22px;font-size:13px;color:var(--muted);text-align:center}
+  /* responsive */
+  @media (max-width:880px){
+    .two-col{grid-template-columns:1fr;align-items:stretch}
+    .nav{display:none}
+    .topbar{flex-direction:column;align-items:flex-start;gap:12px}
+  }
+
+  /* mobile bottom nav - hidden, replaced by sidebar */
+  .mobile-nav{display:none}
+
+  /* small helpers */
+  .row{display:flex;gap:12px;align-items:center}
+  .spacer{height:12px}
+  .hidden{display:none}
+
+  /* hamburger and sidebar */
+  .hamburger{display:none;width:32px;height:32px;cursor:pointer;flex-direction:column;justify-content:center;gap:4px;padding:4px;border-radius:8px}
+  .hamburger span{display:block;width:100%;height:2px;background:var(--nav);border-radius:1px}
+  .sidebar{position:fixed;left:-280px;top:0;width:280px;height:100vh;background:var(--card);box-shadow:2px 0 10px rgba(0,0,0,0.1);z-index:1000;padding:20px;transition:transform 0.3s ease}
+  .sidebar.open{transform:translateX(280px)}
+  .sidebar ul{list-style:none;padding:0;margin:0}
+  .sidebar li{margin-bottom:10px}
+  .sidebar button{background:transparent;border:0;width:100%;text-align:left;padding:12px;border-radius:8px;color:var(--nav);font-weight:600;cursor:pointer}
+  .sidebar button:hover{background:linear-gradient(90deg, rgba(11,143,107,0.12), rgba(8,42,82,0.06))}
+  .sidebar-overlay{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:999}
+  @media (max-width:880px){
+    .hamburger{display:flex}
+    .sidebar-overlay{display:block}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Top -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="logo">CW</div>
+      <div>
+        <h1>CrediGrowW</h1>
+        <div class="small muted">AI Credit for the Credit-Invisible</div>
+      </div>
+    </div>
+
+    <!-- desktop nav -->
+    <nav class="nav" id="desktopNav" aria-label="Main navigation">
+      <button id="nav-home" class="active">Home</button>
+      <button id="nav-profile">Profile</button>
+      <button id="nav-request">Request</button>
+      <button id="nav-crediscore">CrediScore</button>
+      <button id="nav-about">About Us</button>
+      <button id="nav-logout">Logout</button>
+    </nav>
+  </div>
+
+  <!-- MAIN AREA -->
+  <main id="mainArea" class="grid" style="margin-top:14px">
+
+    <!-- LOGIN SCREEN (shown if not logged in) -->
+    <div id="loginScreen" class="card login-card">
+      <div class="two-col">
+        <div>
+          <h2 style="margin:0 0 8px 0">Welcome to CrediGrowW</h2>
+          <p class="muted">Please sign in with your phone number to continue. For demo, OTP = <strong>777777</strong>.</p>
+
+          <div style="margin-top:12px">
+            <label>Phone number</label>
+            <input id="phoneInput" type="tel" placeholder="Enter 10-digit phone number" maxlength="10" />
+          </div>
+
+          <div id="otpArea" style="margin-top:12px;display:none">
+            <label>Enter OTP</label>
+            <input id="otpInput" type="text" placeholder="Enter OTP" maxlength="6" />
+          </div>
+
+          <div style="margin-top:12px" class="row">
+            <button id="sendOtpBtn" class="primary">Send OTP</button>
+            <button id="verifyOtpBtn" class="btn ghost" style="display:none">Verify OTP</button>
+          </div>
+
+          <p id="loginMsg" class="muted small" style="margin-top:10px"></p>
+        </div>
+
+        <div>
+          <div style="border-radius:12px;padding:14px;background:linear-gradient(180deg,#f2fbf8,#ffffff);border:1px solid rgba(11,143,107,0.06)">
+            <h3 style="margin-top:0">Demo Info</h3>
+            <p class="small muted">This is a demo portal for CrediGrowW. OTP for demo is <strong>777777</strong>. After login, explore Profile, Request, CrediScore and About Us pages.</p>
+            <div class="spacer"></div>
+            <div class="card" style="background:linear-gradient(180deg,#fff7e6,#ffffff)">
+              <div style="font-weight:700;color:var(--gold)">Team</div>
+              <div class="small muted" style="margin-top:6px">Surendhiran P · Shamruthy A · Suchandra S</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APP CONTENT: all below shown when logged in -->
+    <section id="appContent" class="hidden">
+      <!-- HOME -->
+      <div id="page-home" class="card">
+        <h2>Welcome to CrediGrowW, <span id="welcomeName">User</span></h2>
+        <p class="muted">Your private, consent-first platform to request trusted financial data for building a fair credit profile.</p>
+        <div style="margin-top:12px" class="two-col">
+          <div class="card">
+            <h4>Quick Actions</h4>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+              <button class="primary" id="quick-request">Request Bank Statement</button>
+              <button class="btn ghost" id="quick-upi">Request UPI Integration</button>
+              <button class="btn ghost" id="quick-profile">Edit Profile</button>
+            </div>
+            <p class="muted small" style="margin-top:10px">For demo, requests are instant and verified.</p>
+          </div>
+
+          <div class="card center">
+            <div class="small muted">Current Status</div>
+            <div style="margin-top:12px">
+              <div id="statusBank" class="badge pending">Bank Statement: Pending</div>
+            </div>
+            <div style="margin-top:8px">
+              <div id="statusUPI" class="badge pending">UPI Integration: Pending</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="page-profile" class="card hidden">
+        <h3>Profile</h3>
+        <div class="two-col" style="align-items:start">
+          <div style="display:flex;gap:12px;align-items:center">
+            <div class="profile-picture" id="picWrap" title="Click to upload">
+              <img id="profileImg" alt="profile" src="" style="display:none" />
+              <div id="avatar" style="text-align:center;color:var(--nav);font-weight:800;font-size:24px;">U</div>
+            </div>
+            <div>
+              <label style="margin-bottom:6px">Name</label>
+              <input id="nameInput" type="text" value="User" />
+              <div style="height:8px"></div>
+              <label>Phone</label>
+              <input id="phoneDisplay" type="text" readonly />
+            </div>
+          </div>
+
+          <div>
+            <h4>About Your Profile</h4>
+            <p class="small muted">Keep your profile updated. Profile picture and name can be changed here for demo purposes.</p>
+            <div style="margin-top:14px">
+              <button class="primary" id="saveProfile">Save Profile</button>
+            </div>
+          </div>
+        </div>
+        <input id="picUpload" type="file" accept="image/*" style="display:none" />
+      </div>
+
+      <!-- REQUEST -->
+      <div id="page-request" class="card hidden">
+        <h3>Request Data</h3>
+        <p class="muted small">Select banks to request bank statements, and request UPI history integration. For demo, clicking Request marks items Verified.</p>
+
+        <div style="margin-top:12px" class="card">
+          <h4>Linked Banks</h4>
+          <div class="banks-list" id="banksList">
+            <!-- Bank items go here -->
+          </div>
+        </div>
+
+        <div style="margin-top:12px" class="card">
+          <h4>UPI Integration</h4>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div>
+              <p class="muted small">Integrate your UPI history to improve scoring.</p>
+            </div>
+            <div>
+              <button class="primary" id="reqUpiBtn">Request UPI Integration</button>
+            </div>
+            <div id="upiStatusWrap" style="margin-left:auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CREDIT SCORE -->
+      <div id="page-crediscore" class="card hidden">
+        <h3>CrediScore</h3>
+        <div id="scoreArea">
+          <!-- dynamic -->
+          <p class="muted small">No CrediScore yet. Request Bank Statement and UPI integration to generate a score.</p>
+        </div>
+      </div>
+
+      <!-- ABOUT -->
+      <div id="page-about" class="card hidden">
+        <h3>About Us</h3>
+        <div class="about-list">
+          <p><strong>Team:</strong> Surendhiran P, Shamruthy A, Suchandra S</p>
+          <p><strong>Institute:</strong> Bannari Amman Institute of Technology, Sathyamangalam, Erode, Tamil Nadu</p>
+          <p><strong>Contact:</strong><br>
+            <a href="mailto:surendhiranp.cs25@bitsathy.ac.in">surendhiranp.cs25@bitsathy.ac.in</a><br>
+            <a href="mailto:shamruthya.cs25@bitsathy.ac.in">shamruthya.cs25@bitsathy.ac.in</a>
+          </p>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>
+    <div class="small muted">CrediGrowW — demo portal • For real deployment, we will integrate secure backend, OTP provider, and account-aggregator flows in future.</div>
+  </footer>
+</div>
+
+<!-- sidebar -->
+<div class="sidebar" id="sidebar">
+  <ul>
+    <li><button id="sidebar-home">Home</button></li>
+    <li><button id="sidebar-profile">Profile</button></li>
+    <li><button id="sidebar-request">Request</button></li>
+    <li><button id="sidebar-crediscore">CrediScore</button></li>
+    <li><button id="sidebar-about">About Us</button></li>
+    <li><button id="sidebar-logout">Logout</button></li>
+  </ul>
+</div>
+
+<!-- sidebar overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- mobile nav -->
+
+<div class="mobile-nav" role="navigation" aria-label="Mobile navigation">
+  <button data-page="home">Home</button>
+  <button data-page="profile">Profile</button>
+  <button data-page="request">Request</button>
+  <button data-page="cred">CrediScore</button>
+  <button data-page="about">About</button>
+</div>
+
+<script>
+/*
+  CrediGrowW — User Portal (Demo)
+  - OTP = 777777 (demo)
+  - Pages: Home, Profile, Request, CrediScore, About
+  - Bank1 & Bank2 show Request Bank Statement buttons (demo verified)
+  - UPI integration button (demo verified)
+  - CrediScore shows 800 once both bank statement and UPI verified; validity 6 months from verification completion.
+  - Profile picture upload & name editing
+  - Responsive nav & mobile bottom nav
+*/
+
+// --- utility & state ---
+const DEMO_OTP = '777777';
+const BANKS = ['Bank1','Bank2'];
+const DEFAULT_SCORE = 800;
+
+const storageKey = 'credigroww_demo_v1';
+let state = {
+  loggedIn: false,
+  phone: '',
+  name: 'User',
+  profileImage: '', // data URL
+  banks: {}, // bankName -> {verified:false, requestedAt:timestamp}
+  upi: {verified:false, requestedAt:null},
+  verificationCompleteAt: null // timestamp when both verified
+};
+
+// load saved
+const saved = localStorage.getItem(storageKey);
+if(saved){
+  try{ Object.assign(state, JSON.parse(saved)); state.loggedIn = false; }catch(e){} // Always start with login screen
+}
+
+// --- DOM refs ---
+const loginScreen = document.getElementById('loginScreen');
+const appContent = document.getElementById('appContent');
+const phoneInput = document.getElementById('phoneInput');
+const sendOtpBtn = document.getElementById('sendOtpBtn');
+const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+const otpArea = document.getElementById('otpArea');
+const otpInput = document.getElementById('otpInput');
+const loginMsg = document.getElementById('loginMsg');
+const welcomeName = document.getElementById('welcomeName');
+
+const navHome = document.getElementById('nav-home');
+const navProfile = document.getElementById('nav-profile');
+const navRequest = document.getElementById('nav-request');
+const navCredi = document.getElementById('nav-crediscore');
+const navAbout = document.getElementById('nav-about');
+const navLogout = document.getElementById('nav-logout');
+
+const pageHome = document.getElementById('page-home');
+const pageProfile = document.getElementById('page-profile');
+const pageRequest = document.getElementById('page-request');
+const pageCredi = document.getElementById('page-crediscore');
+const pageAbout = document.getElementById('page-about');
+
+const nameInput = document.getElementById('nameInput');
+const phoneDisplay = document.getElementById('phoneDisplay');
+const profileImg = document.getElementById('profileImg');
+const avatar = document.getElementById('avatar');
+const picUpload = document.getElementById('picUpload');
+const picWrap = document.getElementById('picWrap');
+const saveProfileBtn = document.getElementById('saveProfile');
+
+const banksList = document.getElementById('banksList');
+const reqUpiBtn = document.getElementById('reqUpiBtn');
+const upiStatusWrap = document.getElementById('upiStatusWrap');
+
+const quickRequestBtn = document.getElementById('quick-request');
+const quickUpiBtn = document.getElementById('quick-upi');
+const quickProfileBtn = document.getElementById('quick-profile');
+
+const scoreArea = document.getElementById('scoreArea');
+const statusBank = document.getElementById('statusBank');
+const statusUPI = document.getElementById('statusUPI');
+
+const mobileNav = document.querySelector('.mobile-nav');
+
+const hamburger = document.getElementById('hamburger');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+const sidebarHome = document.getElementById('sidebar-home');
+const sidebarProfile = document.getElementById('sidebar-profile');
+const sidebarRequest = document.getElementById('sidebar-request');
+const sidebarCredi = document.getElementById('sidebar-crediscore');
+const sidebarAbout = document.getElementById('sidebar-about');
+const sidebarLogout = document.getElementById('sidebar-logout');
+
+// --- init ---
+renderApp();
+
+// --- login flow ---
+sendOtpBtn.addEventListener('click', ()=>{
+  const phone = phoneInput.value.trim();
+  if(!/^\d{10}$/.test(phone)){ loginMsg.textContent='Please enter a valid 10-digit phone number.'; return; }
+  // show otp field
+  otpArea.style.display = 'block';
+  verifyOtpBtn.style.display = 'inline-block';
+  loginMsg.innerHTML = 'OTP sent (demo). Use <strong>777777</strong> to verify.';
+  // save phone temporarily in state for session before verification
+  state.phone = phone;
+  persistState();
+});
+
+verifyOtpBtn.addEventListener('click', ()=>{
+  const otp = otpInput.value.trim();
+  if(otp === DEMO_OTP){
+    // login success
+    state.loggedIn = true;
+    state.name = state.name || 'User';
+    persistState();
+    showApp();
+  } else {
+    loginMsg.textContent = 'Invalid OTP. For demo use 777777.';
+  }
+});
+
+function showApp(){
+  loginScreen.style.display = 'none';
+  appContent.classList.remove('hidden');
+  renderProfileHeader();
+  goToPage('home');
+}
+
+// Always start with login screen, even if previously logged in
+// (Disabled auto-login for demo purposes)
+
+// --- nav events ---
+navHome.addEventListener('click', ()=>goToPage('home'));
+navProfile.addEventListener('click', ()=>goToPage('profile'));
+navRequest.addEventListener('click', ()=>goToPage('request'));
+navCredi.addEventListener('click', ()=>goToPage('cred'));
+navAbout.addEventListener('click', ()=>goToPage('about'));
+navLogout.addEventListener('click', ()=>{
+  // logout: clear state and localStorage, show login screen
+  state.loggedIn = false;
+  state.phone = '';
+  state.name = 'User';
+  state.profileImage = '';
+  state.banks = {};
+  state.upi = {verified:false, requestedAt:null};
+  state.verificationCompleteAt = null;
+  localStorage.removeItem(storageKey);
+  loginScreen.style.display = 'block';
+  appContent.classList.add('hidden');
+  // reset inputs
+  phoneInput.value = '';
+  otpInput.value = '';
+  otpArea.style.display = 'none';
+  verifyOtpBtn.style.display = 'none';
+  loginMsg.textContent = '';
+});
+
+mobileNav.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=> {
+    const p = b.getAttribute('data-page');
+    if(p === 'home') goToPage('home');
+    if(p === 'profile') goToPage('profile');
+    if(p === 'request') goToPage('request');
+    if(p === 'cred') goToPage('cred');
+    if(p === 'about') goToPage('about');
+  });
+});
+
+// --- sidebar events ---
+hamburger.addEventListener('click', ()=>{
+  sidebar.classList.toggle('open');
+  sidebarOverlay.style.display = sidebar.classList.contains('open') ? 'block' : 'none';
+});
+
+sidebarOverlay.addEventListener('click', ()=>{
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+
+sidebarHome.addEventListener('click', ()=>{
+  goToPage('home');
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+sidebarProfile.addEventListener('click', ()=>{
+  goToPage('profile');
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+sidebarRequest.addEventListener('click', ()=>{
+  goToPage('request');
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+sidebarCredi.addEventListener('click', ()=>{
+  goToPage('cred');
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+sidebarAbout.addEventListener('click', ()=>{
+  goToPage('about');
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+sidebarLogout.addEventListener('click', ()=>{
+  // logout: clear state and localStorage, show login screen
+  state.loggedIn = false;
+  state.phone = '';
+  state.name = 'User';
+  state.profileImage = '';
+  state.banks = {};
+  state.upi = {verified:false, requestedAt:null};
+  state.verificationCompleteAt = null;
+  localStorage.removeItem(storageKey);
+  loginScreen.style.display = 'block';
+  appContent.classList.add('hidden');
+  // reset inputs
+  phoneInput.value = '';
+  otpInput.value = '';
+  otpArea.style.display = 'none';
+  verifyOtpBtn.style.display = 'none';
+  loginMsg.textContent = '';
+  sidebar.classList.remove('open');
+  sidebarOverlay.style.display = 'none';
+});
+
+function setActiveNav(key){
+  [navHome,navProfile,navRequest,navCredi,navAbout].forEach(n=>n.classList.remove('active'));
+  if(key==='home') navHome.classList.add('active');
+  if(key==='profile') navProfile.classList.add('active');
+  if(key==='request') navRequest.classList.add('active');
+  if(key==='cred') navCredi.classList.add('active');
+  if(key==='about') navAbout.classList.add('active');
+}
+
+// --- page routing/rendering ---
+function goToPage(page){
+  pageHome.style.display = 'none';
+  pageProfile.style.display = 'none';
+  pageRequest.style.display = 'none';
+  pageCredi.style.display = 'none';
+  pageAbout.style.display = 'none';
+
+  if(page === 'home'){ pageHome.style.display = 'block'; setActiveNav('home'); }
+  if(page === 'profile'){ pageProfile.style.display = 'block'; setActiveNav('profile'); renderProfile(); }
+  if(page === 'request'){ pageRequest.style.display = 'block'; setActiveNav('request'); renderRequests(); }
+  if(page === 'cred'){ pageCredi.style.display = 'block'; setActiveNav('cred'); renderCrediScore(); }
+  if(page === 'about'){ pageAbout.style.display = 'block'; setActiveNav('about'); }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// render header info
+function renderProfileHeader(){
+  welcomeName.textContent = state.name || 'User';
+}
+
+// --- profile ---
+function renderProfile(){
+  nameInput.value = state.name || 'User';
+  phoneDisplay.value = state.phone || '';
+  if(state.profileImage){
+    profileImg.src = state.profileImage;
+    profileImg.style.display = 'block';
+    avatar.style.display = 'none';
+  } else {
+    profileImg.style.display = 'none';
+    avatar.style.display = 'block';
+    avatar.textContent = (state.name && state.name.length>0) ? state.name.charAt(0).toUpperCase() : 'U';
+  }
+}
+
+picWrap.addEventListener('click', ()=>picUpload.click());
+picUpload.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.profileImage = reader.result;
+    persistState();
+    renderProfile();
+    renderProfileHeader();
+  };
+  reader.readAsDataURL(f);
+});
+
+saveProfileBtn.addEventListener('click', ()=>{
+  state.name = nameInput.value.trim() || 'User';
+  persistState();
+  renderProfileHeader();
+  alert('Profile saved (demo).');
+});
+
+// --- requests rendering ---
+function renderRequests(){
+  // banks
+  banksList.innerHTML = '';
+  BANKS.forEach(bank=>{
+    const b = document.createElement('div');
+    b.className = 'bank-item';
+    const left = document.createElement('div');
+    left.innerHTML = `<div style="font-weight:700">${bank}</div><div class="small muted">Linked bank</div>`;
+    const right = document.createElement('div' );
+    const status = (state.banks[bank] && state.banks[bank].verified) ? `<span class="badge verified">Verified</span>` : `<span class="badge pending">Pending</span>`;
+    right.innerHTML = `${status} <div style="height:8px"></div> <button class="btn" data-bank="${bank}" style="background:linear-gradient(90deg,var(--nav),var(--accent));color:white" aria-label="Request bank statement">Request Bank Statement</button>`;
+    b.appendChild(left);
+    b.appendChild(right);
+    banksList.appendChild(b);
+  });
+
+  // wire bank request buttons
+  banksList.querySelectorAll('button[data-bank]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const bank = btn.getAttribute('data-bank');
+      // demo: mark verified instantly
+      state.banks[bank] = {verified:true, requestedAt: Date.now()};
+      checkAndFinalizeVerification();
+      persistState();
+      renderRequests();
+      renderStatusBadges();
+      alert(`${bank} statement Verified (demo). You are eligible once UPI integration is also verified.`);
+    });
+  });
+
+  // upi status update
+  if(state.upi && state.upi.verified){
+    upiStatusWrap.innerHTML = `<span class="badge verified">Verified</span>`;
+  } else {
+    upiStatusWrap.innerHTML = '';
+  }
+}
+
+// UPI request handler
+reqUpiBtn.addEventListener('click', ()=>{
+  // mark verified (demo)
+  state.upi = {verified:true, requestedAt: Date.now()};
+  checkAndFinalizeVerification();
+  persistState();
+  renderRequests();
+  renderStatusBadges();
+  alert('UPI Integration Verified (demo).');
+});
+
+// quick actions
+quickRequestBtn.addEventListener('click', ()=> {
+  // request first bank by default
+  state.banks[BANKS[0]] = {verified:true, requestedAt: Date.now()};
+  checkAndFinalizeVerification();
+  persistState();
+  renderRequests();
+  renderStatusBadges();
+  alert(`${BANKS[0]} statement Verified (demo).`);
+});
+quickUpiBtn.addEventListener('click', ()=> {
+  state.upi = {verified:true, requestedAt: Date.now()};
+  checkAndFinalizeVerification();
+  persistState();
+  renderRequests();
+  renderStatusBadges();
+  alert('UPI Integration Verified (demo).');
+});
+quickProfileBtn.addEventListener('click', ()=> goToPage('profile'));
+
+// status badges on home
+function renderStatusBadges(){
+  // bank: if any bank verified set to Verified; requirement was bank statement + UPI both verified
+  const anyBankVerified = Object.keys(state.banks).some(b=>state.banks[b] && state.banks[b].verified);
+  const bankStatusEl = document.getElementById('statusBank');
+  if(anyBankVerified){
+    bankStatusEl.className = 'badge verified';
+    bankStatusEl.textContent = 'Bank Statement: Verified (demo)';
+  } else {
+    bankStatusEl.className = 'badge pending';
+    bankStatusEl.textContent = 'Bank Statement: Pending';
+  }
+  const upiStatusEl = document.getElementById('statusUPI');
+  if(state.upi && state.upi.verified){
+    upiStatusEl.className = 'badge verified';
+    upiStatusEl.textContent = 'UPI Integration: Verified (demo)';
+  } else {
+    upiStatusEl.className = 'badge pending';
+    upiStatusEl.textContent = 'UPI Integration: Pending';
+  }
+}
+
+// when both bank statement (any bank) and upi verified -> set verificationCompleteAt if not set
+function checkAndFinalizeVerification(){
+  const anyBankVerified = Object.keys(state.banks).some(b=>state.banks[b] && state.banks[b].verified);
+  const upiVerified = state.upi && state.upi.verified;
+  if(anyBankVerified && upiVerified){
+    // set completion timestamp once
+    if(!state.verificationCompleteAt){
+      state.verificationCompleteAt = Date.now();
+      // compute 6 months expiry later in UI
+    }
+  }
+}
+
+// CrediScore rendering
+function renderCrediScoreBox(){
+  if(state.verificationCompleteAt){
+    const verifiedAt = new Date(state.verificationCompleteAt);
+    // expiry 6 months from verifiedAt
+    const expiry = new Date(verifiedAt);
+    expiry.setMonth(expiry.getMonth() + 6);
+    const options = {year:'numeric',month:'short',day:'numeric'};
+    scoreArea.innerHTML = `
+      <div class="score-box">
+        <div class="score-num">${DEFAULT_SCORE}</div>
+        <div>
+          <div class="small muted">CrediScore</div>
+          <div style="margin-top:6px"><strong>Validity:</strong> <span class="expiry">${verifiedAt.toLocaleDateString()} — ${expiry.toLocaleDateString()}</span></div>
+          <div style="margin-top:8px" class="small muted">This score is valid for 6 months from verification completion.</div>
+          <div style="margin-top:10px"><button class="btn" onclick="downloadScore()">Download Score (PDF)</button></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <strong>Breakdown (demo):</strong>
+        <ul>
+          <li class="small">Bank Statement: Verified</li>
+          <li class="small">UPI History: Verified</li>
+          <li class="small">Payment discipline: Good</li>
+        </ul>
+      </div>
+    `;
+  } else {
+    scoreArea.innerHTML = `<p class="muted small">No CrediScore yet. Request Bank Statement and UPI integration to generate a score (demo: requests verify instantly).</p>`;
+  }
+}
+
+// generate PDF stub (simple)
+function downloadScore(){
+  // simple data URL text (not real PDF) for demo
+  const txt = `CrediScore Report\n\nName: ${state.name}\nPhone: ${state.phone}\nScore: ${DEFAULT_SCORE}\nVerified At: ${new Date(state.verificationCompleteAt).toLocaleString()}\nValid Till: ${new Date(new Date(state.verificationCompleteAt).setMonth(new Date(state.verificationCompleteAt).getMonth()+6)).toLocaleDateString()}\n\nThis is a demo export.`;
+  const blob = new Blob([txt], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'CrediScore_Report.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// render entire app based on state
+function renderApp(){
+  // ensure banks objects exist
+  BANKS.forEach(b=> { if(!state.banks[b]) state.banks[b] = {verified:false, requestedAt:null}; });
+  renderProfileHeader();
+  renderStatusBadges();
+  renderRequests();
+  renderCrediScoreBox();
+  // show/hide login
+  if(state.loggedIn && state.phone){
+    loginScreen.style.display = 'none';
+    appContent.classList.remove('hidden');
+  } else {
+    loginScreen.style.display = 'block';
+    appContent.classList.add('hidden');
+  }
+  persistState();
+}
+
+// persist
+function persistState(){
+  localStorage.setItem(storageKey, JSON.stringify(state));
+}
+
+// renderRequests and other initial calls
+renderRequests();
+
+// initial page show if logged in
+if(state.loggedIn) goToPage('home');
+
+</script>
+</body>
+</html>
